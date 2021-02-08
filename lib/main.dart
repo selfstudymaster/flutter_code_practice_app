@@ -27,11 +27,18 @@ class FirstPage extends StatelessWidget {
         child: RaisedButton(
           // ボタン押下でpushする
           onPressed: () {
+            // 新しいルートに遷移する
+            // Navigator.popを呼び出すと自動的に画面左上にも戻るアイコンが追加される
             Navigator.push(
               context,
+              // 画面遷移アニメーションがなされるMaterialPageRoute
+              // 引数にMaterialPageRouteインスタンスを渡し、builderプロパティで遷移したいウィジェットを指定
               MaterialPageRoute(builder: (context) {
                 return SecondPage();
-              }),
+              }
+                  //モーダル遷移にしたい時に下記一行を追記
+                  // fullscreenDialog: true
+                  ),
             );
           },
           // ボタン内のテキスト
@@ -50,6 +57,7 @@ class SecondPage extends StatelessWidget {
         child: RaisedButton(
           // ボタン押下でpopする
           onPressed: () {
+            // 元のルートに戻る
             Navigator.pop(context);
           },
           // ボタン内のテキスト
