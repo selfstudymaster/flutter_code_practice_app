@@ -1,4 +1,7 @@
+import 'dart:convert'; // JSOnのデコードとエンコード
+
 import 'package:flutter/material.dart'; // マテリアルデザイン
+import 'package:http/http.dart' as http; // http
 
 void main() {
   runApp(MyApp());
@@ -18,6 +21,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// 本来ならevent_list_viewに切り分ける
 class MyHomePage extends StatefulWidget {
   MyHomePage(Key key, this.title) : super(key: key);
 
@@ -46,30 +50,96 @@ class _MyHomePageState extends State<MyHomePage> {
               _searchResult(),
             ],
           ),
-        ));
+        ),
+    );
   }
 
-  Widget _searchInput() {}
+  // ListViewの_searchInput()
+  Widget _searchInput() {
+    return ListView(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      children: <Widget>[
+        Container(
+          child: Padding(
+            padding: EdgeInsets.all(12),
+            child: TextField(
+              decoration: InputDecoration(),
+              controller: _controller,
+            ),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(100, 0, 100, 0),
+          child: RaisedButton(
+            child: const Text('search'),
+            onPressed: _search,
+          ),
+        ),
+      ],
+    );
+  }
 
-  void _search() {}
+  void _search() {
+    _getRepository(_controller.text).then((repository){
+      setState(() {
+        _repository = repository;
+      });
+    });
+  }
 
+  // API呼び出す
   Future<ConnpassRepository> _getRepository(String searchWord) async {
-    final response = await http.get();
-    if () {
-
+    final response = await http.get(
+      'https://connpass.com/api/v1/event/?count=100&order=1&kewword=' + searchWord);
+    if (response.statusCode == 200) {
+      final parsed = json,decode(response.body).cast<String, dynamic>();
+      ConnpassRepository repository = ConnpassRepository.fromJson(parsed);
+      return repository;
     } else {
-
+      throw Exception('Fail to search repository');
     }
   }
 
-  Widget _searchCount() {}
+  // ListViewの_searchCount()に検索結果件数に合わせた表示を設定
+  Widget _searchCount() {
+    if (_repository.resultsReturned == null) {
+      return Container();
+    } else if (_repository.resultsReturned < 100) {
+      return Padding(
+        padding: EdgeInsets.all(12),
+        child: Text('検索結果は ${_repository.resultsReturned.toString()} 件です'),
+      );
+    } else {
+      return Padding(
+        padding: EdgeInsets.all(12),
+        child: Text('件数が多すぎるので上限の100件を表示しています'),
+      );
+    }
+  }
 
-  Widget _searchResult() {}
+  // ListViewの_searchResult()を設定
+  Widget _searchResult() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (BuildContext context, int index) {
+        if(_repository.events != null) {
+          final EventRepository event = repository.events[index];
+          return _resultCard(event);
+        } else {
+          return null;
+        }
+      },
+      itemCount: _repository.resultsReturned,
+    );
+  }
 
+  // Detail()に代入して、Detailクラスを別途下に書いていく
   Widget _resultCard(EventRepository eventRepository) {}
 }
 
-//
+// 画面遷移の練習
 // // mainからMyApp
 // void main() {
 //   runApp(MyApp());
